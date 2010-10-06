@@ -119,14 +119,16 @@ public:
 	int		line;
 	int		column;
 	Node	*father;
-
+	Scope* scope;
 	Node(int, int);
 	virtual void accept(Visitor *);
 };
 class File :public Node
 {
 public :
+	Root * Child;
 	File(int, int);
+	File(Root * child ,int, int);
 	virtual void accept(Visitor *);
 };
 //*******     Root		*************
@@ -318,6 +320,7 @@ public:
 	string	name;
 	string kind;
 	Sym *symbol;
+	Scope * scope;
 	Ident(string, int, int);
 	virtual void accept(Visitor *);
 };
@@ -935,6 +938,7 @@ public:
 	Errors *errors;
 	SymTab(Errors *errors);
 	Sym *Lookup(string name);
+	Sym *LookupInUpperScope(string name ,Scope  * scope);
 	bool IsDeclared(Ident *id );
 	bool IsDeclared(Ident *id, ExprList *el);
 	bool IsDeclared(Ident *id, Deffered *def);
@@ -960,6 +964,7 @@ public:
 	Deffered();
 	void AddIdent(Ident *);
 	void CheckAll(SymTab *symtab);
+	void CheckAllDefferd(SymTab *symtab);
 };
 
 //***********************************************************************

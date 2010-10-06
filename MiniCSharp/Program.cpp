@@ -36,19 +36,20 @@ int main(int argsc, char **argsv)
     yyparse();
 	cout << "Syntactical analysis was done successfully! " << endl;
 	
-	def->CheckAll(symtab);
+	def->CheckAllDefferd(symtab);
 
-	if(errors->messages->size() > 0)
-	{
-		errors->Print();
-	}
-	else
-	{
+	//if(errors->messages->size() > 0)
+	//{
+	//	errors->Print();
+	//}
+	//else
+	//{
+		cout<<endl<<"Saleeeeeeeeeeem   "<<file->Child->classes->size()<<endl;
 		TypeVisitor *tv = new TypeVisitor;
 		tv->symtab = symtab;
 		file->accept(tv);
 		errors->Print();
-	}
+	//}
 	
 	
     return 0;

@@ -111,7 +111,7 @@
 %%
 file:			  root
 					{
-						$$ = new File(lin, col);
+						$$ = new File($1,lin, col);
 						symtab->OutScope();
 						file = $$;
 					}
@@ -121,7 +121,6 @@ root:			/* empty */
 					{
 						$$ = new Root(lin, col);
 						symtab->AddNewScope();
-						printf("ddsf");
 					}
 				| root class
 					{
@@ -143,7 +142,7 @@ class:			  CLASS IDENT '{'
 				| CLASS IDENT ':' IDENT '{'
 					{
 						symtab->AddSym($2, 0,0);
-						symtab->IsDeclared($4, 0, 0, def);
+						symtab->IsDeclared($4, 0,0, def);
 						symtab->AddNewScope();
 					}
 					 members '}'
@@ -391,6 +390,7 @@ expr:			  INCREMENT qualnameorarray
 				| qualifiedname '(' expr_list_e ')'
 					{
 						$$ = new Invoke($1, $3, lin, col);
+						$$->scope=symtab->current;
 					}
 				| qualifiedname '(' expr_list_e ')' arrayindex
 					{

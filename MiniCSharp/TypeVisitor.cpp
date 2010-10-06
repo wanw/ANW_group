@@ -22,18 +22,20 @@ TypeVisitor::Visit(Members *n)
 void
 TypeVisitor::Visit(Member  *n)
 {
-	
+
 }
 
 void
 TypeVisitor::Visit(Global  *n)
 {
+	cout<<"Global World "<<endl;
 	n->variables->accept(this);		
 }
 
 void
 TypeVisitor::Visit(Function *n)
 {
+	cout<<"Function World "<<endl;
 	n->stats->accept(this);
 }
 
@@ -503,13 +505,21 @@ TypeVisitor::Visit(ClassInher *n){
 }
 void
 TypeVisitor::Visit(Class *n){
-	
+	for(int i=0;i<n->members->members->size() ;i++)
+	{
+		n->members->members->at(i)->accept(this);
+	}
 }
 void
 TypeVisitor::Visit(File *n){
+	n->Child->accept(this);
 	
 }
 void
 TypeVisitor::Visit(Root *n){
-	
+	cout<<endl<<"ttt"<<n->classes->size()<<endl;
+	for(int i=0; i<n->classes->size();i++)
+	{
+		n->classes->at(i)->accept(this);
+	}
 }

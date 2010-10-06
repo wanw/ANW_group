@@ -106,25 +106,21 @@ SymTab::IsDeclared(Ident *id )
 			return false;
 		}
 
+
 }
 bool
 SymTab::IsDeclared(Ident *id , int kind  ,int type, Deffered *def  )
 {
-
-		string key =kinds[kind]+id->name;
-		Sym *sym = this->Lookup(key);
-		if(sym != NULL)
-		{
-			id->symbol = sym;
-			return true;
-		}
-	
-		else
-		{
-			this->errors->AddError("Undeclared Identifier '" + id->name + "'", id->line, id->column);
-			return false;
-		}
-
+			Sym *sym=this->Lookup(kinds[0]+id->name);
+				if(sym != NULL)
+				{
+					id->symbol = sym;
+					return true;
+				}
+		id->kind=kinds[0];
+		def->AddIdent(id);
+		id->scope=this->current;
+		return false;
 }
 /*
 	SymTab::IsDeclared(Ident *id, ExprList *el)
@@ -134,13 +130,13 @@ SymTab::IsDeclared(Ident *id , int kind  ,int type, Deffered *def  )
 bool
 SymTab::IsDeclared(Ident *id, ExprList *el)
 {
-	string key=id->name;
+	string key="f"+id->name;
 	for(int i = 0 ; i < el->exprList->size(); i++)
 	{
 		int t = el->exprList->at(i)->type;
 		key += "@" + types[t];
 	}
-	Sym *sym = this->Lookup(key);
+	Sym *sym = this->LookupInUpperScope(key ,id->scope);
 	if(sym != NULL)
 	{
 		id->symbol = sym;
@@ -156,9 +152,8 @@ SymTab::IsDeclared(Ident *id, ExprList *el)
 bool
 SymTab::IsDeclared(Ident *id, Deffered *def )
 {
-{
-		Sym *sym;
-			for(int i=5 ; i>2 ;i++)
+		Sym *sym=NULL;
+			for(int i=5 ; i>2 ;i--)
 			{
 				if(sym == NULL)
 				{
@@ -172,8 +167,8 @@ SymTab::IsDeclared(Ident *id, Deffered *def )
 			}
 		id->kind=kinds[3];
 		def->AddIdent(id);
+		id->scope=this->current;
 		return false;
-}
 }
 
 bool
@@ -239,18 +234,30 @@ Deffered::AddIdent(Ident *id)
 {
 	this->ids->push_back(id);
 }
-
 void
-Deffered::CheckAll(SymTab *symtab)
-{
+Deffered::CheckAllDefferd(SymTab *symtab)
+{	
 	for(int i = 0; i < this->ids->size(); i++)
-	{
-	
-		Sym *sym = symtab->current->hashTab->GetMember("g"+this->ids->at(i)->name);
+	{	
+		Sym *sym = symtab->LookupInUpperScope(this->ids->at(i)->kind+this->ids->at(i)->name , this->ids->at(i)->scope);
 		if(sym != 0)
 			this->ids->at(i)->symbol = sym;
 		else
-			symtab->errors->AddError("Undeclared Identifier '" + this->ids->at(i)->name + "'", this->ids->at(i)->line, this->ids->at(i)->column);
+			symtab->errors->AddError(" Undeclared Identifier  '" + this->ids->at(i)->name + "'", this->ids->at(i)->line, this->ids->at(i)->column);
 	}
 
+} 
+Sym *
+SymTab::LookupInUpperScope(std::string name , Scope*  Currentscope)
+{
+	Scope *scope = Currentscope;
+	Sym  *sym = NULL;
+	while(scope != NULL)
+	{
+		sym = scope->hashTab->GetMember(name);
+		if(sym != NULL)
+			return sym;
+		scope = scope->father;
+	}
+	return NULL;
 }

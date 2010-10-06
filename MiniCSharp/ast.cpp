@@ -8,10 +8,16 @@ Node::Node(int line, int column)
 	this->father = NULL;
 }
 //*******     File		*************
+File::File(Root *  child,int l, int c) : Node(l,c)
+{
+	this->Child=child;
+	cout<<endl<<"aAAAAAAAAAa"<<endl;
+	cout<<this->Child->classes->size()<<endl;
+}
 File::File(int l, int c) : Node(l,c)
 {
+	
 }
-
 //*******     Root		*************
 Root::Root(int l, int c) : File(l,c)
 {
@@ -22,6 +28,7 @@ void
 Root::AddClass(Class *cd)
 {
 	this->classes->push_back(cd);
+	cout<<this->classes->size();
 	cd->father = this;
 }
 
