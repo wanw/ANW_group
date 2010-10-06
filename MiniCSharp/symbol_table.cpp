@@ -51,8 +51,11 @@ SymTab::SymTab(Errors *errors)
 	types[3] = "BOOL";
 	types[4] = "void";
 	kinds[0] = "c";//class
-	kinds[1] = "f";//function
-	kinds[2] = "v";//variable
+	kinds[1] = "o";//constructor
+	kinds[2] = "f";//function
+	kinds[3] = "g";//Globalvariable
+	kinds[4] = "l";//Localvariable
+	kinds[5] = "p";//Parametervariable
 }
 
 void
@@ -105,7 +108,7 @@ SymTab::IsDeclared(Ident *id )
 
 }
 bool
-SymTab::IsDeclared(Ident *id , int kind  ,int type )
+SymTab::IsDeclared(Ident *id , int kind  ,int type, Deffered *def  )
 {
 
 		string key =kinds[kind]+id->name;
@@ -153,18 +156,24 @@ SymTab::IsDeclared(Ident *id, ExprList *el)
 bool
 SymTab::IsDeclared(Ident *id, Deffered *def )
 {
-	string key=id->name;
-	Sym *sym = this->Lookup(key);
-	if(sym != NULL)
-	{
-		id->symbol = sym;
-		return true;
-	}
-	else
-	{
+{
+		Sym *sym;
+			for(int i=5 ; i>2 ;i++)
+			{
+				if(sym == NULL)
+				{
+					sym=this->Lookup(kinds[i]+id->name);
+				}
+				if(sym != NULL)
+				{
+					id->symbol = sym;
+					return true;
+				}
+			}
+		id->kind=kinds[3];
 		def->AddIdent(id);
 		return false;
-	}
+}
 }
 
 bool
@@ -236,7 +245,8 @@ Deffered::CheckAll(SymTab *symtab)
 {
 	for(int i = 0; i < this->ids->size(); i++)
 	{
-		Sym *sym = symtab->current->hashTab->GetMember(this->ids->at(i)->name);
+	
+		Sym *sym = symtab->current->hashTab->GetMember("g"+this->ids->at(i)->name);
 		if(sym != 0)
 			this->ids->at(i)->symbol = sym;
 		else

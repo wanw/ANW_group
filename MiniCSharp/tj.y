@@ -121,6 +121,7 @@ root:			/* empty */
 					{
 						$$ = new Root(lin, col);
 						symtab->AddNewScope();
+						printf("ddsf");
 					}
 				| root class
 					{
@@ -131,7 +132,7 @@ root:			/* empty */
 
 class:			  CLASS IDENT '{'
 					{
-						symtab->AddSym($2, 0, -1);
+						symtab->AddSym($2, 0, 0);
 						symtab->AddNewScope();
 					}
 					 members '}'
@@ -141,8 +142,8 @@ class:			  CLASS IDENT '{'
 					}
 				| CLASS IDENT ':' IDENT '{'
 					{
-						symtab->AddSym($2, 0, -1);
-						symtab->IsDeclared($4, 0, -1);
+						symtab->AddSym($2, 0,0);
+						symtab->IsDeclared($4, 0, 0, def);
 						symtab->AddNewScope();
 					}
 					 members '}'
@@ -182,7 +183,7 @@ global:			  accessmodif type variables ';'
 constructor:	  accessmodif IDENT '(' args_e ')' '{' statements '}'
 					{
 						$$ = new Constructor($1, $2, $4, $7, lin, col);
-						symtab->AddSym($2, 1, -1);
+						symtab->AddSym($2, 1, 0);
 					}
 ;
 
@@ -194,25 +195,24 @@ function:		  accessmodif type IDENT '('
 					{
 						$$ = new Function($1, $2, $3, $6, $9, lin, col);
 						symtab->OutScope();
-						symtab->AddSym($3, 2, -1, $6, $2->type, $$);
+						symtab->AddSym($3, 2, $2->type, $6, $2->type, $$);
 					}
 				| accessmodif VOID IDENT '('
 					 {
-						 symtab->AddSym($3, 1, -1);
 						 symtab->AddNewScope();
 					 }
 					 args_e ')' '{' statements '}'
 					{
 						$$ = new Function($1, $3, $6, $9, lin, col);
 						symtab->OutScope();
-						symtab->AddSym($3, 2, -1, $6, 4, $$);
+						symtab->AddSym($3, 2, 4, $6,4, $$);
 					}
 ;
 
 arg :			  type IDENT
 					{
 						$$ = new Arg($1, $2, lin, col);
-						symtab->AddSym($2, 6, $1->type);
+						symtab->AddSym($2, 5, $1->type);
 					}
 ;
 
@@ -285,7 +285,7 @@ type:			  noarraytype
 noarraytype:	  IDENT
 					{
 						$$ = new NoArrayType($1, lin, col);
-						 symtab->IsDeclared($1);
+						symtab->IsDeclared($1 , 0, 0, def);
 					}
 				| basictype
 					{$$ = $1;}
@@ -312,17 +312,17 @@ basictype:		  OBJECT
 arraytype:		  IDENT '[' ']'
 					{
 						$$ = new ArrayType(1, $1, lin, col);
-						symtab->IsDeclared($1);
+						symtab->IsDeclared($1 , 0, 0, def);
 					}
 				| IDENT '[' ',' ']'
 					{
 						$$ = new ArrayType(2, $1, lin, col);
-						symtab->IsDeclared($1);
+						symtab->IsDeclared($1 , 0, 0, def);
 					}
 				| IDENT '[' ',' ',' ']'
 					{
 						$$ = new ArrayType(3, $1, lin, col);
-						symtab->IsDeclared($1);
+						symtab->IsDeclared($1 , 0, 0, def);
 					}
 				| basictype '[' ']'
 					{
@@ -353,17 +353,14 @@ expr:			  INCREMENT qualnameorarray
 				| DECREMENT qualnameorarray
 					{
 						// $$ = new Decr($2, true, lin, col);
-						// symtab->IsDeclared($2);
 					}
 				| qualnameorarray INCREMENT
 					{
 						// $$ = new Incr($1, false, lin, col);
-						// symtab->IsDeclared($1);
 					}
 				| qualnameorarray DECREMENT
 					{
 						// $$ = new Decr($1, false, lin, col);
-						// symtab->IsDeclared($1);
 					}
 				| '!' expression
 					{
@@ -402,12 +399,12 @@ expr:			  INCREMENT qualnameorarray
 				| NEW IDENT '(' expr_list_e ')'
 					{
 						$$ = new NewObject($2, $4, lin, col);
-						symtab->AddSym($2, 1, -1);
+					symtab->IsDeclared($2 , 0, 0, def);
 					}
 				| NEW IDENT arrayindex
 					{
 						$$ = new NewArr($2, $3, lin, col);
-						symtab->AddSym($2, 1, -1);
+						symtab->IsDeclared($2 , 0, 0, def);
 					}
 				| expr EQ expression
 					{
@@ -512,6 +509,7 @@ expr:			  INCREMENT qualnameorarray
 					}
 				| '(' IDENT ')' expression
 					{
+					symtab->IsDeclared($2,0,0 , def);
 					}
 				| INTEGER
 					{
@@ -556,60 +554,69 @@ arrayindex:		  '[' expression ']'
 qualifiedname:	  IDENT
 					{
 						$$ = new QualName_ID($1, lin, col);
-						symtab->IsDeclared($1);
+						symtab->IsDeclared($1 , 0, 0, def);
 					}
 				| expr '.' IDENT
 					{
 						$$ = new QualName_Exp($3, $1, lin, col);
-						symtab->IsDeclared($3);
+						symtab->IsDeclared($3 , 0, 0, def);
 					}
 				| qualnameorarray '.' IDENT
 					{
+					symtab->IsDeclared($3 , 0, 0, def);
 					}
 ;
 
 qualnameorarray:  IDENT
 					{
 						$$ = new QualName_ID($1, lin, col);
-						symtab->IsDeclared($1);
+						symtab->IsDeclared($1 , def);
 					}
 				| IDENT arrayindex
 					{
 						$$ = new QualNArray_ID_Index($1, $2, lin, col);
-						symtab->IsDeclared($1);
+						symtab->IsDeclared($1, def);
 					}
 				| expr '.' IDENT
 					{
 						$$ = new QualName_Exp($3, $1, lin, col);
-						symtab->IsDeclared($3);
+						symtab->IsDeclared($3, def );
 					}
 				| qualnameorarray '.' IDENT
 					{
+				symtab->IsDeclared($3, def );
 					}
 				| expr '.' IDENT arrayindex
 					{
 						$$ = new QualNArray_Exp_Index($3, $1, $4, lin, col);
-						symtab->IsDeclared($3);
+						symtab->IsDeclared($3, def);
 					}
 				| qualnameorarray '.' IDENT arrayindex
 					{
+					symtab->IsDeclared($3, def );
 					}
 ;
 
 qnora_without_id: IDENT arrayindex
 					{
+							symtab->IsDeclared($1, def );
 					}
 				| expr '.' IDENT
 					{
+						symtab->IsDeclared($3 , def);
 					}
 				| qualnameorarray '.' IDENT
 					{
+						symtab->IsDeclared($3, def );
 					}
 				| expr '.' IDENT arrayindex
 					{
+						symtab->IsDeclared($3 , def);
 					}
+					
 				| qualnameorarray '.' IDENT arrayindex
 					{
+						symtab->IsDeclared($3, def );
 					}
 ;
 
@@ -658,7 +665,7 @@ statement:		  IF '(' expression ')' statement %prec IF_PREC
 					{
 						$$ = new VariablesStat($1, $2, lin, col);
 						for(int i = 0; i < $2->variables->size(); i++)
-							symtab->AddSym($2->variables->at(i)->name, 3, $1->type);
+							symtab->AddSym($2->variables->at(i)->name, 4, $1->type);
 					}
 				| ';'
 					{

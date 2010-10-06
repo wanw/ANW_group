@@ -316,6 +316,7 @@ class Ident : public Node
 {
 public:
 	string	name;
+	string kind;
 	Sym *symbol;
 	Ident(string, int, int);
 	virtual void accept(Visitor *);
@@ -928,7 +929,7 @@ class SymTab
 {
 private:
 	string types [5];
-	string kinds[5];
+	string kinds[6];
 public:
 	Scope *current;
 	Errors *errors;
@@ -937,7 +938,7 @@ public:
 	bool IsDeclared(Ident *id );
 	bool IsDeclared(Ident *id, ExprList *el);
 	bool IsDeclared(Ident *id, Deffered *def);
-	bool IsDeclared(Ident *id , int kind  ,int type );
+	bool IsDeclared(Ident *id , int kind  ,int type , Deffered *def);
 	bool AddSym(Ident *id, int kind, int type);
 	bool AddSym(Ident *id, int kind, int type, Args *ps, int returnType, Function *meth);	
 
